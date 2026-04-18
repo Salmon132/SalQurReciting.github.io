@@ -8,22 +8,28 @@
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif; }
     body { background: linear-gradient(145deg, #0d1f2d 0%, #1a2f3a 100%); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
-    .player-card { max-width: 1000px; width: 100%; background: rgba(255, 255, 255, 0.98); border-radius: 40px; box-shadow: 0 25px 45px -10px rgba(0, 0, 0, 0.3); padding: 28px 30px 35px; border: 1px solid rgba(200, 220, 200, 0.3); }
+    .player-card { max-width: 1100px; width: 100%; background: rgba(255, 255, 255, 0.98); border-radius: 40px; box-shadow: 0 25px 45px -10px rgba(0, 0, 0, 0.3); padding: 28px 30px 35px; border: 1px solid rgba(200, 220, 200, 0.3); }
     h1 { font-weight: 500; font-size: 2.3rem; color: #1a3a2a; display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
     h1 i { color: #2d5a3f; font-size: 2rem; background: #e8f0e4; padding: 12px; border-radius: 50%; }
     .subhead { color: #4a6b55; margin-bottom: 30px; font-size: 1.1rem; border-left: 5px solid #2d5a3f; padding-left: 18px; }
-    .reciter-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin: 25px 0 20px; }
+    .reciter-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 15px; margin: 25px 0 20px; max-height: 500px; overflow-y: auto; padding-right: 5px; }
+    .reciter-grid::-webkit-scrollbar { width: 8px; }
+    .reciter-grid::-webkit-scrollbar-track { background: #e0ede0; border-radius: 10px; }
+    .reciter-grid::-webkit-scrollbar-thumb { background: #2d5a3f; border-radius: 10px; }
     .reciter-card { background: #ffffff; border-radius: 20px; padding: 18px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); border: 1px solid #d0e0d0; transition: all 0.2s; cursor: pointer; }
     .reciter-card:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12); border-color: #8fb38f; }
     .reciter-card.active { background: #e8f4e8; border: 2px solid #2d5a3f; }
     .reciter-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
     .flag-icon { font-size: 1.8rem; }
-    .reciter-info h3 { font-weight: 600; font-size: 1.1rem; color: #1a3a2a; }
-    .reciter-info .origin { font-size: 0.8rem; color: #5a7a65; }
+    .reciter-info h3 { font-weight: 600; font-size: 1rem; color: #1a3a2a; }
+    .reciter-info .origin { font-size: 0.75rem; color: #5a7a65; }
     .surah-badge { background: #e0ede0; padding: 5px 10px; border-radius: 30px; font-size: 0.75rem; color: #2a4a35; display: inline-flex; align-items: center; gap: 5px; margin: 8px 0; }
-    .play-btn { background: #2d5a3f; border: none; color: white; padding: 10px 14px; border-radius: 30px; font-size: 0.9rem; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; transition: background 0.2s; margin-top: 8px; width: 100%; }
-    .play-btn:hover { background: #1a3a2a; }
+    .play-btn { background: #2d5a3f; border: none; color: white; padding: 10px 14px; border-radius: 30px; font-size: 0.9rem; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; transition: all 0.2s; margin-top: 8px; width: 100%; }
+    .play-btn:hover { background: #1a3a2a; transform: scale(1.02); }
     .play-btn.playing { background: #c44536; }
+    .play-btn .fa-pause { display: none; }
+    .play-btn.playing .fa-play { display: none; }
+    .play-btn.playing .fa-pause { display: inline-block; }
     .now-playing-section { background: #e8f0e4; margin-top: 25px; padding: 20px 25px; border-radius: 50px; display: flex; align-items: center; flex-wrap: wrap; gap: 20px; border: 1px solid #b8d0b8; }
     .now-info { min-width: 180px; }
     .now-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 2px; color: #4a6b55; }
@@ -33,62 +39,71 @@
     audio { flex: 3; min-width: 250px; height: 40px; border-radius: 30px; }
     .control-btn { background: white; border: none; width: 40px; height: 40px; border-radius: 40px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; color: #2d5a3f; cursor: pointer; border: 1px solid #b8d0b8; transition: all 0.15s; }
     .control-btn:hover { background: #f0f7f0; }
-    .status-message { font-size: 0.8rem; color: #666; margin-top: 10px; text-align: center; }
-    @media (max-width: 600px) { .player-card { padding: 20px 15px; } h1 { font-size: 1.8rem; } }
+    .status-message { font-size: 0.8rem; color: #666; margin-top: 10px; text-align: center; min-height: 20px; }
+    .audio-fallback { margin-top: 5px; font-size: 0.75rem; color: #888; }
+    @media (max-width: 600px) { .player-card { padding: 20px 15px; } h1 { font-size: 1.8rem; } .reciter-info h3 { font-size: 0.9rem; } }
   </style>
 </head>
 <body>
 <div class="player-card">
   <h1><i class="fas fa-quran"></i> Quran Reciters</h1>
-  <div class="subhead"><i class="fas fa-map-pin"></i> Saudi Arabia · Indonesia · More</div>
+  <div class="subhead"><i class="fas fa-map-pin"></i> Saudi Arabia · Indonesia · More · Full Surahs</div>
   <div class="reciter-grid" id="reciterGrid"></div>
   <div class="now-playing-section">
     <div class="now-info">
       <div class="now-label">NOW PLAYING</div>
-      <div class="now-title" id="currentReciterName">Sheikh Saad Al-Ghamdi</div>
-      <div class="now-surah" id="currentSurahName">Al-Fatihah</div>
+      <div class="now-title" id="currentReciterName">Select a reciter</div>
+      <div class="now-surah" id="currentSurahName"></div>
     </div>
     <div class="player-controls">
       <button class="control-btn" id="playPauseBtn" title="Play/Pause"><i class="fas fa-play"></i></button>
-      <audio id="quranAudio" controls></audio>
+      <audio id="quranAudio" controls preload="none"></audio>
       <button class="control-btn" id="stopBtn" title="Stop"><i class="fas fa-stop"></i></button>
     </div>
   </div>
-  <div class="status-message" id="statusMessage"></div>
+  <div class="status-message" id="statusMessage">Click on any reciter's "Play Surah" button</div>
+  <div class="audio-fallback">* If audio doesn't load, try clicking play again or select another reciter</div>
 </div>
 
 <script>
   (function() {
     "use strict";
 
-    // --- RECITER DATABASE (with verified full surah MP3 URLs) ---
+    // --- RECITER DATABASE with multiple fallback URLs for reliability ---
     const reciters = [
       {
         id: 'ghamdi',
         name: 'Sheikh Saad Al-Ghamdi',
         origin: '🇸🇦 Saudi Arabia',
         flag: '🇸🇦',
-        surah: 'Al-Fatihah (The Opening)',
-        // Verified full surah from IslamiCity (2008) [reference:1]
-        audioUrl: 'http://www.howdomuslimspray.com/Quran-Recitation-Saad-Al-Ghamidi/001.MP3'
+        surah: 'Al-Fatihah',
+        // Multiple sources for reliability
+        audioUrls: [
+          'https://server13.mp3quran.net/ghamdi/001.mp3',
+          'https://download.quranicaudio.com/quran/saad_al-ghaamidi/001.mp3'
+        ]
       },
       {
         id: 'sudais',
         name: 'Sheikh Abdul Rahman Al-Sudais',
         origin: '🇸🇦 Saudi Arabia',
         flag: '🇸🇦',
-        surah: 'Al-Ikhlas (Sincerity)',
-        // Full surah from GitHub raw (quran-by-verses) [reference:2]
-        audioUrl: 'https://raw.githubusercontent.com/quran-by-verses/abdulbasit-mojawwad-64/refs/heads/main/verses/112.mp3' 
+        surah: 'Al-Ikhlas',
+        audioUrls: [
+          'https://server13.mp3quran.net/sudais/112.mp3',
+          'https://download.quranicaudio.com/quran/abdul_rahman_al-sudais/112.mp3'
+        ]
       },
       {
         id: 'shuraim',
         name: 'Sheikh Saud Al-Shuraim',
         origin: '🇸🇦 Saudi Arabia',
         flag: '🇸🇦',
-        surah: 'An-Nas (Mankind)',
-        // Full surah from GitHub raw (quran-by-verses)
-        audioUrl: 'https://raw.githubusercontent.com/quran-by-verses/abdulbasit-mojawwad-64/refs/heads/main/verses/114.mp3'
+        surah: 'An-Nas',
+        audioUrls: [
+          'https://server13.mp3quran.net/shuraim/114.mp3',
+          'https://download.quranicaudio.com/quran/sa3ood_ibn_ibraheem_ash-shuraym/114.mp3'
+        ]
       },
       {
         id: 'mishary',
@@ -96,45 +111,98 @@
         origin: '🇰🇼 Kuwait (Popular in Indonesia)',
         flag: '🇮🇩',
         surah: 'Al-Kawthar',
-        // Full surah from archive.org (public domain) [reference:3]
-        audioUrl: 'https://archive.org/download/mishari-rashid-al-afasy-quran-mp3/108.mp3'
+        audioUrls: [
+          'https://server13.mp3quran.net/afs/108.mp3',
+          'https://download.quranicaudio.com/quran/mishaari_raashid_al_3afaasee/108.mp3'
+        ]
       },
       {
         id: 'muaiqly',
         name: 'Sheikh Maher Al-Muaiqly',
         origin: '🇸🇦 Saudi Arabia',
         flag: '🇸🇦',
-        surah: 'Al-Asr (The Time)',
-        // Full surah from GitHub raw (quran-by-verses)
-        audioUrl: 'https://raw.githubusercontent.com/quran-by-verses/abdulbasit-mojawwad-64/refs/heads/main/verses/103.mp3'
+        surah: 'Al-Asr',
+        audioUrls: [
+          'https://server13.mp3quran.net/maher/103.mp3',
+          'https://download.quranicaudio.com/quran/maher_al_mu3ayqali/103.mp3'
+        ]
       },
       {
         id: 'juhany',
         name: 'Sheikh Abdullah Al-Juhany',
         origin: '🇸🇦 Saudi Arabia',
         flag: '🇸🇦',
-        surah: 'Al-Qadr (Power)',
-        audioUrl: 'https://raw.githubusercontent.com/quran-by-verses/abdulbasit-mojawwad-64/refs/heads/main/verses/097.mp3'
+        surah: 'Al-Qadr',
+        audioUrls: [
+          'https://server13.mp3quran.net/juhany/097.mp3',
+          'https://download.quranicaudio.com/quran/abdullah_ibn_3awwaad_al-juhany/097.mp3'
+        ]
       },
       {
         id: 'basfar',
         name: 'Abdullah Basfar',
         origin: '🇸🇦 Saudi Arabia',
         flag: '🇸🇦',
-        surah: 'Al-Maun (Small Kindnesses)',
-        audioUrl: 'https://raw.githubusercontent.com/quran-by-verses/abdulbasit-mojawwad-64/refs/heads/main/verses/107.mp3'
+        surah: 'Al-Maun',
+        audioUrls: [
+          'https://server13.mp3quran.net/basfar/107.mp3',
+          'https://download.quranicaudio.com/quran/abdullaah_3ali_basfar/107.mp3'
+        ]
       },
       {
         id: 'ajamy',
         name: 'Ahmed Al-Ajamy',
         origin: '🇸🇦 Saudi Arabia',
         flag: '🇸🇦',
-        surah: 'Al-Fil (The Elephant)',
-        audioUrl: 'https://raw.githubusercontent.com/quran-by-verses/abdulbasit-mojawwad-64/refs/heads/main/verses/105.mp3'
+        surah: 'Al-Fil',
+        audioUrls: [
+          'https://server13.mp3quran.net/ajm/105.mp3',
+          'https://download.quranicaudio.com/quran/ahmad_ibn_3ali_al-3ajami/105.mp3'
+        ]
+      },
+      {
+        id: 'hudhaify',
+        name: 'Ali Al-Hudhaify',
+        origin: '🇸🇦 Saudi Arabia',
+        flag: '🇸🇦',
+        surah: 'Al-Kafirun',
+        audioUrls: [
+          'https://server13.mp3quran.net/huth/109.mp3',
+          'https://download.quranicaudio.com/quran/ali_ibn_abdur-rahman_al-huthayfi/109.mp3'
+        ]
+      },
+      {
+        id: 'luhaidan',
+        name: 'Nasser Al-Luhaidan',
+        origin: '🇸🇦 Saudi Arabia',
+        flag: '🇸🇦',
+        surah: 'Al-Quraish',
+        audioUrls: [
+          'https://server13.mp3quran.net/lhdan/106.mp3'
+        ]
+      },
+      {
+        id: 'muhaisany',
+        name: 'Mohamed Al-Muhaisany',
+        origin: '🇸🇦 Saudi Arabia',
+        flag: '🇸🇦',
+        surah: 'Al-Humazah',
+        audioUrls: [
+          'https://server13.mp3quran.net/mohsin/104.mp3'
+        ]
+      },
+      {
+        id: 'yasser',
+        name: 'Yasser Al-Dosari',
+        origin: '🇸🇦 Saudi Arabia',
+        flag: '🇸🇦',
+        surah: 'At-Takathur',
+        audioUrls: [
+          'https://server13.mp3quran.net/yasser/102.mp3'
+        ]
       }
     ];
 
-    // DOM elements
     const grid = document.getElementById('reciterGrid');
     const audioPlayer = document.getElementById('quranAudio');
     const playPauseBtn = document.getElementById('playPauseBtn');
@@ -143,13 +211,16 @@
     const currentSurahName = document.getElementById('currentSurahName');
     const statusMessage = document.getElementById('statusMessage');
 
-    let currentReciter = reciters[0];
+    let currentReciter = null;
+    let currentUrlIndex = 0;
     let isPlaying = false;
 
     function showStatus(msg, isError = false) {
       statusMessage.textContent = msg;
       statusMessage.style.color = isError ? '#c44536' : '#2d5a3f';
-      if (!isError) setTimeout(() => { if (statusMessage.textContent === msg) statusMessage.textContent = ''; }, 3000);
+      if (!isError) {
+        setTimeout(() => { if (statusMessage.textContent === msg) statusMessage.textContent = ''; }, 4000);
+      }
     }
 
     function updateNowPlaying(reciter) {
@@ -163,55 +234,94 @@
       });
     }
 
-    function updatePlayButtons(playing) {
-      const icon = playPauseBtn.querySelector('i');
-      icon.className = playing ? 'fas fa-pause' : 'fas fa-play';
+    function updateAllPlayButtons(reciterId, playing) {
+      // Update main play/pause button
+      const mainIcon = playPauseBtn.querySelector('i');
+      mainIcon.className = playing ? 'fas fa-pause' : 'fas fa-play';
+      
+      // Update all card play buttons
       document.querySelectorAll('[data-action="play"]').forEach(btn => {
-        const btnIcon = btn.querySelector('i');
-        const isCurrent = btn.dataset.id === currentReciter.id;
-        btnIcon.className = (isCurrent && playing) ? 'fas fa-pause' : 'fas fa-play';
-        btn.classList.toggle('playing', isCurrent && playing);
+        const isCurrentReciter = btn.dataset.id === reciterId;
+        btn.classList.toggle('playing', isCurrentReciter && playing);
       });
     }
 
-    function loadAudio(reciter, autoPlay = false) {
-      currentReciter = reciter;
-      updateNowPlaying(reciter);
-      updateActiveCard(reciter.id);
+    function tryLoadAudio(reciter, urlIndex = 0, autoPlay = true) {
+      if (urlIndex >= reciter.audioUrls.length) {
+        showStatus(`❌ Could not load audio for ${reciter.name}. Please try another reciter.`, true);
+        return;
+      }
+
+      const audioUrl = reciter.audioUrls[urlIndex];
+      showStatus(`Loading ${reciter.name} - ${reciter.surah}...`);
       
-      audioPlayer.src = reciter.audioUrl;
+      audioPlayer.src = audioUrl;
       audioPlayer.load();
-      showStatus(`Loading ${reciter.name}...`);
       
       const handleCanPlay = () => {
-        showStatus(`Ready: ${reciter.name} - ${reciter.surah}`);
+        showStatus(`✅ Ready: ${reciter.name} - ${reciter.surah}`);
+        audioPlayer.removeEventListener('canplay', handleCanPlay);
+        audioPlayer.removeEventListener('error', handleError);
+        
         if (autoPlay) {
           audioPlayer.play().then(() => {
             isPlaying = true;
-            updatePlayButtons(true);
-          }).catch(() => showStatus('Click play to start audio', false));
+            updateAllPlayButtons(reciter.id, true);
+          }).catch(err => {
+            showStatus('Click play button to start', false);
+          });
         }
-        audioPlayer.removeEventListener('canplay', handleCanPlay);
       };
       
       const handleError = () => {
-        showStatus(`Could not load audio. The link might be temporarily unavailable.`, true);
+        console.warn(`Failed to load URL ${urlIndex + 1}/${reciter.audioUrls.length}`);
+        audioPlayer.removeEventListener('canplay', handleCanPlay);
         audioPlayer.removeEventListener('error', handleError);
+        
+        // Try next URL
+        tryLoadAudio(reciter, urlIndex + 1, autoPlay);
       };
       
-      audioPlayer.addEventListener('canplay', handleCanPlay);
-      audioPlayer.addEventListener('error', handleError);
+      audioPlayer.addEventListener('canplay', handleCanPlay, { once: true });
+      audioPlayer.addEventListener('error', handleError, { once: true });
+      
+      // Timeout fallback
+      setTimeout(() => {
+        audioPlayer.removeEventListener('canplay', handleCanPlay);
+        audioPlayer.removeEventListener('error', handleError);
+        if (urlIndex + 1 < reciter.audioUrls.length) {
+          tryLoadAudio(reciter, urlIndex + 1, autoPlay);
+        }
+      }, 8000);
     }
 
     function playReciter(reciter) {
-      if (currentReciter.id === reciter.id) {
+      if (!reciter) return;
+      
+      if (currentReciter && currentReciter.id === reciter.id) {
+        // Same reciter - toggle play/pause
         if (audioPlayer.paused) {
-          audioPlayer.play().then(() => { isPlaying = true; updatePlayButtons(true); });
+          audioPlayer.play().then(() => {
+            isPlaying = true;
+            updateAllPlayButtons(reciter.id, true);
+            showStatus(`Playing: ${reciter.name}`);
+          }).catch(() => showStatus('Click play to start', false));
         } else {
-          audioPlayer.pause(); isPlaying = false; updatePlayButtons(false);
+          audioPlayer.pause();
+          isPlaying = false;
+          updateAllPlayButtons(reciter.id, false);
+          showStatus(`Paused: ${reciter.name}`);
         }
       } else {
-        loadAudio(reciter, true);
+        // New reciter - load and play
+        if (currentReciter) {
+          updateAllPlayButtons(currentReciter.id, false);
+        }
+        
+        currentReciter = reciter;
+        updateNowPlaying(reciter);
+        updateActiveCard(reciter.id);
+        tryLoadAudio(reciter, 0, true);
       }
     }
 
@@ -219,7 +329,7 @@
       grid.innerHTML = '';
       reciters.forEach(reciter => {
         const card = document.createElement('div');
-        card.className = `reciter-card ${reciter.id === currentReciter.id ? 'active' : ''}`;
+        card.className = 'reciter-card';
         card.dataset.id = reciter.id;
         card.innerHTML = `
           <div class="reciter-header">
@@ -230,11 +340,16 @@
             </div>
           </div>
           <div class="surah-badge"><i class="fas fa-book-open"></i> ${reciter.surah}</div>
-          <button class="play-btn" data-action="play" data-id="${reciter.id}"><i class="fas fa-play"></i> Play Surah</button>
+          <button class="play-btn" data-action="play" data-id="${reciter.id}">
+            <i class="fas fa-play"></i>
+            <i class="fas fa-pause"></i>
+            Play Surah
+          </button>
         `;
         grid.appendChild(card);
       });
 
+      // Event listeners for play buttons
       document.querySelectorAll('[data-action="play"]').forEach(btn => {
         btn.addEventListener('click', (e) => {
           e.stopPropagation();
@@ -243,13 +358,22 @@
         });
       });
 
+      // Click on card selects but doesn't auto-play
       document.querySelectorAll('.reciter-card').forEach(card => {
         card.addEventListener('click', (e) => {
           if (e.target.closest('[data-action="play"]')) return;
           const reciter = reciters.find(r => r.id === card.dataset.id);
-          if (reciter && reciter.id !== currentReciter.id) {
-            loadAudio(reciter, false);
-            audioPlayer.pause(); isPlaying = false; updatePlayButtons(false);
+          if (reciter) {
+            if (currentReciter && currentReciter.id !== reciter.id) {
+              updateAllPlayButtons(currentReciter.id, false);
+            }
+            currentReciter = reciter;
+            updateNowPlaying(reciter);
+            updateActiveCard(reciter.id);
+            tryLoadAudio(reciter, 0, false);
+            isPlaying = false;
+            updateAllPlayButtons(reciter.id, false);
+            showStatus(`Selected: ${reciter.name}`);
           }
         });
       });
@@ -257,25 +381,68 @@
 
     function initialize() {
       renderGrid();
-      loadAudio(reciters[0], false);
       
-      audioPlayer.addEventListener('play', () => { isPlaying = true; updatePlayButtons(true); });
-      audioPlayer.addEventListener('pause', () => { isPlaying = false; updatePlayButtons(false); });
-      audioPlayer.addEventListener('ended', () => { isPlaying = false; updatePlayButtons(false); });
-      audioPlayer.addEventListener('waiting', () => showStatus('Buffering...'));
-      audioPlayer.addEventListener('playing', () => showStatus(`Now playing: ${currentReciter.name}`));
+      // Audio event listeners
+      audioPlayer.addEventListener('play', () => {
+        isPlaying = true;
+        if (currentReciter) {
+          updateAllPlayButtons(currentReciter.id, true);
+          showStatus(`Now playing: ${currentReciter.name}`);
+        }
+      });
       
+      audioPlayer.addEventListener('pause', () => {
+        isPlaying = false;
+        if (currentReciter) {
+          updateAllPlayButtons(currentReciter.id, false);
+        }
+      });
+      
+      audioPlayer.addEventListener('ended', () => {
+        isPlaying = false;
+        if (currentReciter) {
+          updateAllPlayButtons(currentReciter.id, false);
+          showStatus(`Finished: ${currentReciter.name}`);
+        }
+      });
+      
+      audioPlayer.addEventListener('waiting', () => {
+        if (currentReciter) {
+          showStatus(`Buffering...`);
+        }
+      });
+      
+      // Control buttons
       playPauseBtn.addEventListener('click', () => {
-        if (audioPlayer.paused) audioPlayer.play().catch(() => showStatus('Click play to start', false));
-        else audioPlayer.pause();
+        if (!currentReciter) {
+          showStatus('Please select a reciter first', true);
+          return;
+        }
+        
+        if (audioPlayer.paused) {
+          audioPlayer.play().catch(() => showStatus('Click play to start', false));
+        } else {
+          audioPlayer.pause();
+        }
       });
       
       stopBtn.addEventListener('click', () => {
         audioPlayer.pause();
         audioPlayer.currentTime = 0;
         isPlaying = false;
-        updatePlayButtons(false);
+        if (currentReciter) {
+          updateAllPlayButtons(currentReciter.id, false);
+          showStatus(`Stopped: ${currentReciter.name}`);
+        }
       });
+      
+      // Set first reciter as default (loaded but not playing)
+      const firstReciter = reciters[0];
+      currentReciter = firstReciter;
+      updateNowPlaying(firstReciter);
+      updateActiveCard(firstReciter.id);
+      tryLoadAudio(firstReciter, 0, false);
+      showStatus(`Ready: ${firstReciter.name}`);
     }
 
     initialize();
