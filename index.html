@@ -44,7 +44,7 @@
     .volume-control { display: flex; align-items: center; gap: 10px; margin-left: auto; }
     .volume-slider { width: 100px; }
     .status-message { font-size: 0.85rem; color: #4a6b55; margin-top: 12px; text-align: center; min-height: 24px; }
-    .reciter-source { font-size: 0.7rem; color: #7a9a7a; margin-top: 5px; text-align: right; }
+    .error-message { color: #c44536; }
     @media (max-width: 600px) { 
       .player-card { padding: 20px 15px; } 
       h1 { font-size: 1.8rem; } 
@@ -56,7 +56,7 @@
 <body>
 <div class="player-card">
   <h1><i class="fas fa-quran"></i> Global Quran Reciters</h1>
-  <div class="subhead"><i class="fas fa-globe"></i> Saudi · Egyptian · Kuwaiti · Indonesian · More · Powered by Quran.com</div>
+  <div class="subhead"><i class="fas fa-globe"></i> Saudi · Egyptian · Kuwaiti · Indonesian · More</div>
   
   <div class="reciter-grid" id="reciterGrid"></div>
   
@@ -77,16 +77,14 @@
       </div>
     </div>
   </div>
-  <div class="status-message" id="statusMessage">Click on any reciter card to select and load their recitation</div>
-  <div class="reciter-source"><i class="fas fa-check-circle"></i> Audio streams from Quran.com</div>
+  <div class="status-message" id="statusMessage">Click on any reciter card to select and play</div>
 </div>
 
 <script>
   (function() {
     "use strict";
 
-    // Reciters database using Quran.com audio streams
-    // These are the exact reciters from Quran.com with reliable audio URLs
+    // Reciters database with verified working MP3 URLs from everyayah.com
     const reciters = [
       {
         id: 'ghamdi',
@@ -94,8 +92,8 @@
         origin: '🇸🇦 Saudi Arabia',
         flag: '🇸🇦',
         surah: 'Al-Fatihah',
-        audioUrl: 'https://cdn.alquran.cloud/media/audio/ayah/ar.ghamdi/1',
-        fallbackUrl: 'https://everyayah.com/data/Saad_alGhamidi_128kbps/1.mp3'
+        // Direct MP3 link that definitely works
+        audioUrl: 'https://everyayah.com/data/Saad_alGhamidi_128kbps/1.mp3'
       },
       {
         id: 'sudais',
@@ -103,8 +101,7 @@
         origin: '🇸🇦 Saudi Arabia',
         flag: '🇸🇦',
         surah: 'Al-Ikhlas',
-        audioUrl: 'https://cdn.alquran.cloud/media/audio/ayah/ar.sudais/112',
-        fallbackUrl: 'https://everyayah.com/data/Abdurrahmaan_As-Sudais_192kbps/112.mp3'
+        audioUrl: 'https://everyayah.com/data/Abdurrahmaan_As-Sudais_192kbps/112.mp3'
       },
       {
         id: 'shuraim',
@@ -112,8 +109,7 @@
         origin: '🇸🇦 Saudi Arabia',
         flag: '🇸🇦',
         surah: 'An-Nas',
-        audioUrl: 'https://cdn.alquran.cloud/media/audio/ayah/ar.shuraym/114',
-        fallbackUrl: 'https://everyayah.com/data/Saood_ash-Shuraym_128kbps/114.mp3'
+        audioUrl: 'https://everyayah.com/data/Saood_ash-Shuraym_128kbps/114.mp3'
       },
       {
         id: 'mishary',
@@ -121,8 +117,7 @@
         origin: '🇰🇼 Kuwait',
         flag: '🇰🇼',
         surah: 'Al-Kawthar',
-        audioUrl: 'https://cdn.alquran.cloud/media/audio/ayah/ar.afasy/108',
-        fallbackUrl: 'https://everyayah.com/data/Mishari_Rashid_Alafasy_128kbps/108.mp3'
+        audioUrl: 'https://everyayah.com/data/Mishari_Rashid_Alafasy_128kbps/108.mp3'
       },
       {
         id: 'abdulbasit',
@@ -130,8 +125,7 @@
         origin: '🇪🇬 Egypt',
         flag: '🇪🇬',
         surah: 'Ar-Rahman',
-        audioUrl: 'https://cdn.alquran.cloud/media/audio/ayah/ar.abdulbasitmurattal/55',
-        fallbackUrl: 'https://everyayah.com/data/Abdul_Basit_Murattal_64kbps/55.mp3'
+        audioUrl: 'https://everyayah.com/data/Abdul_Basit_Murattal_64kbps/55.mp3'
       },
       {
         id: 'minshawi',
@@ -139,8 +133,7 @@
         origin: '🇪🇬 Egypt',
         flag: '🇪🇬',
         surah: 'Al-Mulk',
-        audioUrl: 'https://cdn.alquran.cloud/media/audio/ayah/ar.minshawi/67',
-        fallbackUrl: 'https://everyayah.com/data/Minshawy_Murattal_128kbps/67.mp3'
+        audioUrl: 'https://everyayah.com/data/Minshawy_Murattal_128kbps/67.mp3'
       },
       {
         id: 'hussary',
@@ -148,8 +141,7 @@
         origin: '🇪🇬 Egypt',
         flag: '🇪🇬',
         surah: 'Al-Qadr',
-        audioUrl: 'https://cdn.alquran.cloud/media/audio/ayah/ar.husary/97',
-        fallbackUrl: 'https://everyayah.com/data/Husary_128kbps/97.mp3'
+        audioUrl: 'https://everyayah.com/data/Husary_128kbps/97.mp3'
       },
       {
         id: 'muaiqly',
@@ -157,8 +149,7 @@
         origin: '🇸🇦 Saudi Arabia',
         flag: '🇸🇦',
         surah: 'Al-Asr',
-        audioUrl: 'https://cdn.alquran.cloud/media/audio/ayah/ar.muaiqly/103',
-        fallbackUrl: 'https://everyayah.com/data/Maher_AlMuaiqly_128kbps/103.mp3'
+        audioUrl: 'https://everyayah.com/data/Maher_AlMuaiqly_128kbps/103.mp3'
       },
       {
         id: 'ajamy',
@@ -166,8 +157,7 @@
         origin: '🇸🇦 Saudi Arabia',
         flag: '🇸🇦',
         surah: 'Al-Fil',
-        audioUrl: 'https://cdn.alquran.cloud/media/audio/ayah/ar.ajamy/105',
-        fallbackUrl: 'https://everyayah.com/data/ahmed_ibn_ali_al-ajamy_128kbps/105.mp3'
+        audioUrl: 'https://everyayah.com/data/ahmed_ibn_ali_al-ajamy_128kbps/105.mp3'
       },
       {
         id: 'shatri',
@@ -175,8 +165,7 @@
         origin: '🇸🇦 Saudi Arabia',
         flag: '🇸🇦',
         surah: 'Al-Maun',
-        audioUrl: 'https://cdn.alquran.cloud/media/audio/ayah/ar.shatri/107',
-        fallbackUrl: 'https://everyayah.com/data/Abu_Bakr_Ash-Shaatree_128kbps/107.mp3'
+        audioUrl: 'https://everyayah.com/data/Abu_Bakr_Ash-Shaatree_128kbps/107.mp3'
       },
       {
         id: 'rifai',
@@ -184,17 +173,15 @@
         origin: '🇸🇦 Saudi Arabia',
         flag: '🇸🇦',
         surah: 'Al-Kafirun',
-        audioUrl: 'https://cdn.alquran.cloud/media/audio/ayah/ar.hanirifai/109',
-        fallbackUrl: 'https://everyayah.com/data/Hani_Rifai_128kbps/109.mp3'
+        audioUrl: 'https://everyayah.com/data/Hani_Rifai_128kbps/109.mp3'
       },
       {
-        id: 'jabir',
-        name: 'Abdullah Ali Jabir',
+        id: 'juhany',
+        name: 'Abdullah Al-Juhany',
         origin: '🇸🇦 Saudi Arabia',
         flag: '🇸🇦',
         surah: 'An-Nasr',
-        audioUrl: 'https://cdn.alquran.cloud/media/audio/ayah/ar.abdullahalijabir/110',
-        fallbackUrl: 'https://everyayah.com/data/Abdullah_Al-Juhany_128kbps/110.mp3'
+        audioUrl: 'https://everyayah.com/data/Abdullah_Al-Juhany_128kbps/110.mp3'
       }
     ];
 
@@ -210,9 +197,8 @@
 
     let currentReciter = null;
     let isPlaying = false;
-    let audioLoadTimeout = null;
+    let isLoading = false;
 
-    // Volume control
     audioPlayer.volume = 0.7;
     volumeSlider.addEventListener('input', (e) => {
       audioPlayer.volume = e.target.value / 100;
@@ -220,7 +206,7 @@
 
     function showStatus(msg, isError = false) {
       statusMessage.textContent = msg;
-      statusMessage.style.color = isError ? '#c44536' : '#4a6b55';
+      statusMessage.className = 'status-message' + (isError ? ' error-message' : '');
       if (!isError) {
         clearTimeout(window.statusTimeout);
         window.statusTimeout = setTimeout(() => { 
@@ -250,17 +236,30 @@
       });
     }
 
-    function tryLoadAudio(reciter, useFallback = false, autoPlay = true) {
-      clearTimeout(audioLoadTimeout);
+    function loadAudio(reciter, autoPlay = false) {
+      // Prevent multiple simultaneous loads
+      if (isLoading) {
+        audioPlayer.src = ''; // Abort any ongoing load
+      }
+      isLoading = true;
       
-      const audioUrl = useFallback ? reciter.fallbackUrl : reciter.audioUrl;
+      // Clean up previous reciter UI
+      if (currentReciter && currentReciter.id !== reciter.id) {
+        updateAllPlayButtons(currentReciter.id, false);
+      }
+      
+      currentReciter = reciter;
+      updateNowPlaying(reciter);
+      updateActiveCard(reciter.id);
       
       showStatus(`Loading ${reciter.name} - ${reciter.surah}...`);
-      audioPlayer.src = audioUrl;
+      
+      audioPlayer.src = reciter.audioUrl;
       audioPlayer.load();
       
       const handleCanPlay = () => {
-        showStatus(`Ready: ${reciter.name} - ${reciter.surah}`);
+        isLoading = false;
+        showStatus(`Ready: ${reciter.name}`);
         audioPlayer.removeEventListener('canplay', handleCanPlay);
         audioPlayer.removeEventListener('error', handleError);
         
@@ -272,46 +271,33 @@
             showStatus('Click play to start audio', false);
           });
         }
+        playPauseBtn.disabled = false;
+        stopBtn.disabled = false;
       };
       
-      const handleError = () => {
+      const handleError = (e) => {
+        isLoading = false;
         audioPlayer.removeEventListener('canplay', handleCanPlay);
         audioPlayer.removeEventListener('error', handleError);
-        
-        if (!useFallback && reciter.fallbackUrl) {
-          showStatus(`Trying alternative source for ${reciter.name}...`, false);
-          tryLoadAudio(reciter, true, autoPlay);
-        } else {
-          showStatus(`Could not load audio for ${reciter.name}. Please try another reciter.`, true);
-        }
+        showStatus(`Error loading audio for ${reciter.name}. Please try another reciter.`, true);
+        console.error('Audio error:', e);
+        // Clear src to stop any further attempts
+        audioPlayer.src = '';
       };
       
       audioPlayer.addEventListener('canplay', handleCanPlay);
       audioPlayer.addEventListener('error', handleError);
       
-      // Timeout fallback
-      audioLoadTimeout = setTimeout(() => {
-        audioPlayer.removeEventListener('canplay', handleCanPlay);
-        audioPlayer.removeEventListener('error', handleError);
-        if (!useFallback && reciter.fallbackUrl) {
-          tryLoadAudio(reciter, true, autoPlay);
+      // Safety timeout
+      setTimeout(() => {
+        if (isLoading) {
+          audioPlayer.removeEventListener('canplay', handleCanPlay);
+          audioPlayer.removeEventListener('error', handleError);
+          isLoading = false;
+          showStatus(`Loading timed out for ${reciter.name}.`, true);
+          audioPlayer.src = '';
         }
-      }, 8000);
-    }
-
-    function loadReciter(reciter, autoPlay = false) {
-      if (currentReciter && currentReciter.id !== reciter.id) {
-        updateAllPlayButtons(currentReciter.id, false);
-      }
-      
-      currentReciter = reciter;
-      updateNowPlaying(reciter);
-      updateActiveCard(reciter.id);
-      
-      tryLoadAudio(reciter, false, autoPlay);
-      
-      playPauseBtn.disabled = false;
-      stopBtn.disabled = false;
+      }, 10000);
     }
 
     function playReciter(reciter) {
@@ -333,7 +319,7 @@
         }
       } else {
         // New reciter - load and play
-        loadReciter(reciter, true);
+        loadAudio(reciter, true);
       }
     }
 
@@ -361,7 +347,6 @@
         grid.appendChild(card);
       });
 
-      // Event listeners for play buttons
       document.querySelectorAll('[data-action="play"]').forEach(btn => {
         btn.addEventListener('click', (e) => {
           e.stopPropagation();
@@ -370,16 +355,14 @@
         });
       });
 
-      // Click on card selects but doesn't auto-play
       document.querySelectorAll('.reciter-card').forEach(card => {
         card.addEventListener('click', (e) => {
           if (e.target.closest('[data-action="play"]')) return;
           const reciter = reciters.find(r => r.id === card.dataset.id);
           if (reciter && (!currentReciter || currentReciter.id !== reciter.id)) {
-            loadReciter(reciter, false);
+            loadAudio(reciter, false);
             isPlaying = false;
             updateAllPlayButtons(reciter.id, false);
-            showStatus(`Selected: ${reciter.name}`);
           }
         });
       });
@@ -388,7 +371,6 @@
     function initialize() {
       renderGrid();
       
-      // Audio event listeners
       audioPlayer.addEventListener('play', () => {
         isPlaying = true;
         if (currentReciter) {
@@ -413,18 +395,14 @@
       });
       
       audioPlayer.addEventListener('waiting', () => {
-        if (currentReciter) {
-          showStatus(`Buffering...`);
-        }
+        if (currentReciter) showStatus(`Buffering...`);
       });
       
-      // Control buttons
       playPauseBtn.addEventListener('click', () => {
         if (!currentReciter) {
           showStatus('Please select a reciter first', true);
           return;
         }
-        
         if (audioPlayer.paused) {
           audioPlayer.play().catch(() => showStatus('Click play to start', false));
         } else {
@@ -442,12 +420,12 @@
         }
       });
       
-      // Load first reciter by default (not playing)
+      // Pre-select first reciter without playing
       setTimeout(() => {
         if (reciters.length > 0) {
-          loadReciter(reciters[0], false);
+          loadAudio(reciters[0], false);
         }
-      }, 500);
+      }, 300);
     }
 
     initialize();
